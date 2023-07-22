@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#Border 
+	{
+		border: solid thick black
+	}
+</style>
+<script>
+
+/*
+	The small blue box is the bird. Press Up arrow key to jump. 
+	Avoid hitting the floor, the ceiling, and the columns. 
+	The Score increases every time the bird successfully passes through a hole. 
+	The further you get, the narrower the holes will be. 
+	Have fun!
+*/
+
+var canvas,ctx;
+var canv;
+var cellH, cellW; //cell height, cell width. used with birds.
+var clicks = 0;
+var Obstacle = []; //array for objects of class Column
+var Obst = 0;
+var h,w; //height, width
+var Birds = 0;
+var Rythm = 1500;
+var Score = 0;
+var Level = 1;
+var Columns_Level_Count = 0; //every now and then increases the Level (see ReInit() of class Column)
+var conveyor = 1; //if conveyor == 1, one object of class Column is generated
+var i; //used in for() loop when moving columns
+
+function CheckFail(Obst)
+{
+
+	if (Math.abs(Obstacle[Obst].x - bird.x) <= cellW && bird.y <= Obstacle[Obst].height)
+	{
+	// green
+		window.alert("your score: "+Score+" your level: "+Level);
+		location.reload();
+	}	
+	
+	else if (Math.abs(Obstacle[Obst].x - bird.x) <= cellW && bird.y >= Obstacle[Obst].height + Obstacle[Obst].Gap - cellH)
+	{
+	// blue
+		window.alert("your score: "+Score+" your level: "+Level);
+		location.reload();
+	}
+	
+	else if (bird.y >= canv.height - 11 || bird.y <= 0)
+	{
+	//floor and ceiling
+		window.alert("your score: "+Score+" your level: "+Level);
+		location.reload();
+	}
+	
+	else if (Obstacle[Obst].x == bird.x)
+	{
+		Obstacle[Obst].ScoreUp();
+	}
+}
+
+function initCanvas(w,h)
+{
+	canv = document.getElementById("Border");
+	ctx = canv.getContext("2d");
+	w = canv.width;
+	h = canv.height;
+	console.log(canv.width,canv.height);
+	cellW = 10;
+	cellH = 10;
+}
+
+function startGame()
+{
+	console.log("game started");
+	clicks += 1;
+	if (clicks > 1)
+	{
+		return;
+	}
+	initCanvas();
+	bird = new Bird();
+	Obstacle[Obst] = new Column();
+
+	document.getElementById("p1").innerHTML = "Score";
+	document.getElementById("p3").innerHTML = "Level";
+
+	setInterval(function()
+	{
+	// moving columns
+		for (i = 0; i <= Obst; i++)
+		{	
+			Obstacle[i].MoveCol();
+			CheckFail(i);
+			document.getElementById("p2").innerHTML = Score;
+			document.getElementById("p4").innerHTML = Level;
+		}
+	},30);
+	
+	setInterval(function()
+	{
+	// moving the bird
+		bird.setBox();
+		for (i = 0; i <= Birds; i++)
+		{
+			bird.time++;
+			bird.Fall();
+		}		
+	},60);
+	
+	setInterval(function()
+	{
+	// creating objects of class Column
+		if (conveyor == 1)
+		{
+			Obst++;
+			Obstacle[Obst] = new Column;
+			console.log("Obst", Obst);
+		}
+	},Rythm);
+
+	document.onkeydown = function(e){ bird.MoveBird(e); };
+}	
+	
+class Bird
+{
+	constructor()
+	{
+		this.x = canv.width/2;
+		this.y = 60;
+		this.time = 0;
+
+		this.setBox = function()
+		{
+			ctx.fillStyle = "blue";
+			ctx.fillRect(this.x, this.y, cellW, cellH);
+		}
+		
+		this.cleanBox = function()
+		{
+			ctx.clearRect(this.x,this.y,cellW,cellH);
+		}
+		
+		this.up = function()
+		{
+			this.cleanBox();
+			this.y -= 15;
+			this.time = 0;
+			this.setBox();
+		}
+		
+		this.Fall = function()
+		{
+			if (this.y < canv.height-11)
+			{	
+				this.pull = this.time * 0.9;
+				this.cleanBox();
+				this.y += this.pull;
+				this.setBox();
+			}
+			else
+			{
+				this.y = canv.height - cellW;
+			}
+		}
+		
+		this.MoveBird = function(e)
+		{
+			e = window.event;
+			if (e.keyCode == '38' && this.y>0) 
+			{
+				// up arrow
+				this.up();
+				console.log("Up");
+			}
+		}
+	}
+}
+
+class Column
+{
+	constructor()
+	{
+		this.decrease = 5;
+		this.Gap = 60;
+		this.height = Math.floor(Math.random() * (canv.height - this.Gap - 5));
+		this.width = 20;
+		this.Speed = 2;
+		this.x = canv.width + this.width;
+		
+		this.ReInit = function()
+		{
+			this.RemoveCol();
+			this.x = canv.width + 10;
+			Columns_Level_Count++;
+			if (Columns_Level_Count == 6)
+			{
+				Columns_Level_Count = 0;
+				this.LevelUp();
+			}
+			
+			if (this.decrease >= cellH * 2.5)
+			{
+				this.decrease = this.decrease * 1.1;
+			}
+			this.Gap = this.Gap - this.decrease;
+			this.height = Math.floor(Math.random() * (canv.height - this.Gap - 5));
+			this.DrawCol();
+		}
+	
+		this.DrawCol = function()
+		{
+			ctx.fillStyle = "green";
+			ctx.fillRect( this.x, 0, this.width, this.height ); // (x, y, width, height)
+			
+			ctx.fillStyle = "blue";
+			ctx.fillRect( this.x, this.height + this.Gap, this.width, canv.height - (this.height + this.Gap)); // (x, y, width, height)
+			
+		}
+			
+		this.RemoveCol = function()
+		{
+			ctx.clearRect( this.x, 0, this.width + 1, this.height );
+			ctx.clearRect( this.x, this.height + this.Gap, this.width + 1, canv.height - (this.height + this.Gap) );
+		}
+		
+		this.MoveCol = function()
+		{
+			if (this.x >= (-this.width * 4.8))
+			{
+				this.RemoveCol();
+				this.x -= this.Speed; 
+				this.DrawCol();
+				if (this.x <= -this.width)
+				{
+					conveyor = 0;
+				}
+			}
+			else
+			{
+				this.ReInit();
+			}
+		}
+		this.ScoreUp = function()
+		{
+			Score++;
+			console.log("Score, Rythm", Score, Rythm);	
+//			document.getElementById("p2").innerHTML = Score;
+		}
+		this.LevelUp = function()
+		{
+			Level++;
+		}
+	}	
+}
+
+</script>
+</head>
+<body align = "center">
+	<canvas width="600px" height="200px" id="Border"></canvas>
+	<button onClick="startGame();"> start game </button>
+	
+	<p id = "p1"></p>
+	<p id = "p2"></p>	
+	
+	<p id = "p3"></p>
+	<p id = "p4"></p>	
+	
+</body>
+</html>

@@ -1,0 +1,154 @@
+<html>
+<head>
+<title>Interceptor</title>
+<style>
+#Herd{
+	font-family: OCR A Std;
+	margin: 20px;
+}
+#Game {
+	border: solid thick black;
+	margin: 20px;
+}
+#button{
+	display: block;
+	margin:auto;
+	font-family: monospace;
+}
+</style>
+<script>
+var canvas, ctx;
+var cellSize;
+var n = 600 / 100;
+var pro, con;
+var score = 0;
+var Enemies = [];
+var Enem = 0;
+var Level = 1;
+var clicks = 0;
+
+function CheckKill(Enem){
+	if (Math.abs(pro.x-Enemies[Enem].x) <= cellSize && Math.abs(pro.y-Enemies[Enem].y) <= cellSize){
+		ctx.clearRect(this.x,this.y,cellSize+2,cellSize+2);
+		Enemies[Enem].ReInit();
+		n += 0.5;	
+		score += 1;
+		pro.speed += 1;
+		if (score % 5 == 0){
+			Enemies[i].LevelUp();
+			}
+		}
+	}
+function startGame(){
+	clicks+=1;
+	if (clicks > 1){
+			return;
+		}
+	initCanvas();
+	pro = new Pro();
+	Enemies[Enem] = new Con();
+	setInterval(function(){
+		for (i = 0; i<=Enem; i++){
+			Enemies[i].MoveCon();
+			Enemies[i].DrawCon();
+			}
+			pro.setBox();
+		for (i = 0; i<=Enem; i++){
+			CheckKill(i);
+			Enemies[i].CheckFail();
+			}
+	},100);
+document.onkeydown = function(e){ pro.MovePro(e); };
+
+}
+	function initCanvas(){
+	    canvas = document.getElementById("Game");
+		ctx = canvas.getContext("2d");
+		cellSize = canvas.width / 15;
+			/*W = w;
+			H = h;
+			cellW = canvas.width / w;
+			cellH = canvas.height / h;*/
+	}
+class Con{
+	constructor(){
+		this.x = Math.round(Math.random()*(canvas.width - cellSize));
+		this.y = 0;
+	this.ReInit = function(){
+		this.x = Math.round(Math.random()*(canvas.width - cellSize));
+		this.y = 0;
+		this.DrawCon();
+		}
+	this.DrawCon = function(){
+		ctx.fillStyle = "blue";
+		ctx.fillRect(this.x,this.y,cellSize,cellSize);
+		}
+	this.MoveCon = function(){
+		ctx.clearRect(this.x-2,this.y-2,cellSize+2,cellSize+2);
+		this.y += n; 
+		}
+	this.CheckFail = function(){
+		if (this.y >= canvas.height-cellSize){
+			window.alert("u lost. u mad?"+" "+"your score:"+" "+score+" "+"your level:"+" "+Level);
+			location.reload();
+			}
+		}
+	this.LevelUp = function(){
+		Level += 1;
+		pro.speed += 1;
+		Enem++;
+		Enemies[Enem] = new Con();
+		}
+	}
+}
+class Pro{
+	constructor(){
+		this.x = canvas.width/2;
+		this.y = canvas.height-cellSize;
+		this.speed = canvas.width / 100;
+	this.setBox = function(){
+		ctx.fillStyle = "black";
+		ctx.fillRect(this.x,this.y,cellSize,cellSize);
+		//ctx.fillRect(*x position*, *y position*, *size*)
+	}
+	this.cleanBox = function(){
+		ctx.clearRect(this.x-2,this.y-2,cellSize+2,cellSize+2);
+	}
+	this.MovePro = function(e) {
+		e = e || window.event;
+		if (e.keyCode == '38' && this.y>0) {
+		// up arrow
+			this.cleanBox();
+			this.y -= this.speed;
+			this.setBox();
+			}
+		else if (e.keyCode == '40' && this.y<canvas.height-cellSize){
+		// down arrow
+			this.cleanBox();
+			this.y += this.speed;
+			this.setBox();
+			}
+		else if (e.keyCode == '37' && this.x>0){
+		// left arrow
+			this.cleanBox();
+			this.x -= this.speed;
+			this.setBox();
+			}
+		else if (e.keyCode == '39' && this.x<canvas.width-cellSize){
+		// right arrow
+			this.cleanBox();
+			this.x += this.speed;
+			this.setBox();
+			}
+		}
+	}
+}
+
+</script>
+</head>
+<body align="center">
+	<h1 id = "Herd"><font color = "red">Interceptor</font></h1>
+	<canvas width="600px" height="600px" id="Game"></canvas>
+	<button id = "button" onClick="startGame();"><b>start game</b></button>
+</body>
+</html>

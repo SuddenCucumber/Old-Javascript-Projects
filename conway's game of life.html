@@ -1,0 +1,403 @@
+<html>
+
+<head>
+
+<style>
+#Border
+{
+	border: solid thick black
+}
+</style>
+
+<script>
+var canvas,ctx;
+var canv;
+var cellH, cellW; //cell height, cell width.
+var clicks = 0;
+var h,w; //height, width of canvas
+var World = [];
+var Generation = [];
+var Step = 0;
+var Hold_Arr = [];
+var matrix_height;
+var matrix_width;
+var Code_Frequency = 100;
+
+function MakeArr(arr, height, width)
+{
+	for (i = 0; i < height; i++)
+	{
+		arr.push([]);
+		for (l = 0; l < width; l++)
+		{
+			arr[i].push(0);
+		}
+		console.log(arr[i].length);
+	}
+	console.log();
+}
+
+function initCanvas()
+{	
+	canv = document.getElementById("Border");
+	ctx = canv.getContext("2d");
+	cellH = 3;
+	cellW = 3;
+	matrix_height = canv.height/cellH;	
+	matrix_width = canv.width/cellW;
+	MakeArr(World, matrix_height, matrix_width);
+	MakeArr(Generation, matrix_width, matrix_height);
+//	MakeArr(Hold_Arr, matrix_width, matrix_height);
+	document.getElementById("p2").innerHTML = matrix_height;
+	document.getElementById("p4").innerHTML = matrix_width;	
+}
+
+function UpdateSteps()
+{
+	Step++;
+	document.getElementById("p6").innerHTML = Step;
+}
+
+function ReverseArr(arr, length, height, rotate)
+//		arr - seed; arr2 - hold arr. 
+//		arr2 is the reversed verson of arr
+{
+	var arr2 = [];
+	MakeArr(arr2, length, height);
+	
+	if(rotate == 1)
+	{
+		return arr;
+	}
+	
+	if (rotate == 2)
+	{
+		for (y = height - 1; y >= 0; y-=1)
+		{
+			for (x = 0; x < length; x++)
+			{
+				arr2[y][x] = arr[y][length - x - 1];
+			}
+		}
+		return arr2;
+	}
+		
+	if (rotate == 3)
+	{
+		for (y = 0; y < height; y++)
+		{
+			for (x = 0; x < length; x++)
+			{
+				arr2[y][x] = arr[height - y - 1][length - x - 1];
+			}
+		}
+		return arr2;
+	}
+		
+	if (rotate == 4)
+	{
+		for (y = 0; y < height; y++)
+		{
+			arr2[y] = arr[height - y - 1];
+		}
+		return arr2;
+	}
+}
+
+function GliderGun(arr, x, y, rotate)
+{
+	var GliderGun_width = 36;
+	var GliderGun_height = 9; 
+	var GliderGun_seed = [];
+	MakeArr(GliderGun_seed, GliderGun_width, GliderGun_height);
+	
+	GliderGun_seed[0][24] = 1;
+	
+	GliderGun_seed[1][22] = 1;
+	GliderGun_seed[1][24] = 1;
+	
+	GliderGun_seed[2][12] = 1;
+	GliderGun_seed[2][13] = 1;
+	GliderGun_seed[2][20] = 1;
+	GliderGun_seed[2][21] = 1;
+	GliderGun_seed[2][34] = 1;
+	GliderGun_seed[2][35] = 1;
+	
+	GliderGun_seed[3][11] = 1;
+	GliderGun_seed[3][15] = 1;
+	GliderGun_seed[3][20] = 1;
+	GliderGun_seed[3][21] = 1;
+	GliderGun_seed[3][34] = 1;
+	GliderGun_seed[3][35] = 1;
+	
+	GliderGun_seed[4][0] = 1;
+	GliderGun_seed[4][1] = 1;
+	GliderGun_seed[4][10] = 1;
+	GliderGun_seed[4][16] = 1;
+	GliderGun_seed[4][20] = 1;
+	GliderGun_seed[4][21] = 1;
+	
+	GliderGun_seed[5][0] = 1;
+	GliderGun_seed[5][1] = 1;
+	GliderGun_seed[5][10] = 1;
+	GliderGun_seed[5][14] = 1;
+	GliderGun_seed[5][16] = 1;
+	GliderGun_seed[5][17] = 1;
+	GliderGun_seed[5][22] = 1;
+	GliderGun_seed[5][24] = 1;
+	
+	GliderGun_seed[6][10] = 1;
+	GliderGun_seed[6][16] = 1;
+	GliderGun_seed[6][24] = 1;
+	
+	GliderGun_seed[7][11] = 1;
+	GliderGun_seed[7][15] = 1;
+	
+	GliderGun_seed[8][12] = 1;
+	GliderGun_seed[8][13] = 1;
+	
+	var Reversed_Arr = ReverseArr(GliderGun_seed, GliderGun_width, GliderGun_height, rotate);
+	console.log("glider gun seed length",GliderGun_seed.length);
+	TransferArr(arr, Reversed_Arr, GliderGun_width, GliderGun_height, y, x);
+}
+
+function Loaf(arr, x, y, rotate)
+{
+	var Loaf_width = 4;
+	var Loaf_height = 4;
+	var Loaf_seed = [];
+	MakeArr(Loaf_seed, Loaf_width, Loaf_height);
+	
+	Loaf_seed[0][2] = 1;
+	
+	Loaf_seed[1][1] = 1;
+	Loaf_seed[1][3] = 1;
+	
+	Loaf_seed[2][0] = 1;
+	Loaf_seed[2][3] = 1;
+	
+	Loaf_seed[3][1] = 1;
+	Loaf_seed[3][2] = 1;
+	
+	var Reversed_Arr = ReverseArr(Loaf_seed, Loaf_width, Loaf_height, rotate);
+	TransferArr(arr, Reversed_Arr, Loaf_width, Loaf_height, y, x);
+}
+
+function Randomizer(arr, sideY, sideX, originY, originX)
+{
+	if (sideY + originY + 1 < arr.length && sideY > 0)
+	{
+		for (y = originY; y < sideY + originY; y++)
+		{
+			if (sideX + originX + 1 < arr[y].length && sideX > 0)
+			{
+				for (x = originX; x < sideX + originX; x++)
+				{
+					var state = Math.floor(Math.random() * 2);
+					arr[y][x] = state;
+				}
+			}
+		}
+	}
+	else
+	{
+		console.log("different sideY or originY");
+	}
+}
+
+function TransferArr(World_arr, small_arr, small_arr_width, small_arr_height, draw_y, draw_x)
+{
+	if (small_arr_height + draw_y < World_arr.length)
+	{
+		for (y = 0; y < small_arr_height; y++)
+		{
+			if (small_arr_width + draw_x < World_arr[y].length)
+			{
+				for (x = 0; x < small_arr[y].length; x++)
+				{
+					if (small_arr[y][x] == 1)
+					{
+						World_arr[draw_y + y][draw_x + x] = 1;
+					}
+				}
+			}
+		}
+	}
+}
+
+function TestGlider(arr, x, y, rotate)
+{
+	var GliderHeight = 3;
+	var GliderLength = 3;
+//	var Hold_Glider_Arr = [];
+	var Glider_Seed_Arr = [];
+	
+	MakeArr(Glider_Seed_Arr, GliderLength, GliderHeight);
+//	MakeArr(Hold_Glider_Arr, GliderWidth, GliderHeight);
+	
+	Glider_Seed_Arr[0][1] = 1;
+	Glider_Seed_Arr[1][2] = 1;
+	Glider_Seed_Arr[2][0] = 1;
+	Glider_Seed_Arr[2][1] = 1;
+	Glider_Seed_Arr[2][2] = 1;
+	
+	var Reversed_Arr = ReverseArr(Glider_Seed_Arr, GliderLength, GliderHeight, rotate);
+	TransferArr(arr, Reversed_Arr, GliderLength, GliderHeight, y, x);
+}
+
+function startGame()
+{
+	console.log("game started");
+	clicks += 1;
+	if (clicks > 1)
+	{
+		return;
+	}
+	initCanvas();
+/*	
+	GliderGun(World, 50, 50, 1);
+	GliderGun(World, 115, 1, 1);
+	GliderGun(World, 82, 60, 3);
+
+	
+	GliderGun(World, 140, 10, 2);
+	GliderGun(World, 140, 140, 3);
+	
+	GliderGun(World, 31, 31, 1);
+	GliderGun(World, 31, 57, 1);
+	GliderGun(World, 31, 83, 1);
+
+	GliderGun(World, 31, 218, 4);
+	GliderGun(World, 31, 244, 4);
+	GliderGun(World, 31, 270, 4);
+
+	GliderGun(World, 243, 31, 2);
+	GliderGun(World, 243, 57, 2);	
+	GliderGun(World, 243, 83, 2);
+	
+	GliderGun(World, 243, 218, 3);
+	GliderGun(World, 243, 244, 3);
+	GliderGun(World, 243, 270, 3);
+*/
+
+	Randomizer(World, 200, 200, 10, 10);
+	
+//	Loaf(World, 50, 37, 1);
+	
+	setInterval(function()
+	{
+		DrawEverySquare(World);
+		CheckOthers(World, Generation, Hold_Arr);
+		Update(World, Generation, Hold_Arr);
+		UpdateSteps();
+	},Code_Frequency);
+}
+
+function setBox(x,y)
+{
+	ctx.fillRect(x*cellW,y*cellH,cellW,cellH);
+//	console.log(x,y);
+}
+
+function cleanBox(x,y)
+{
+	ctx.clearRect(x*cellW,y*cellH,cellW,cellH);
+}
+
+function DrawEverySquare(arr)
+{
+	for (row = 0; row < arr.length; row++)
+	{
+		for (column = 0; column < arr[row].length; column++)
+		{
+			if (arr[row][column] == 1)
+			{
+				setBox(column, row);
+			}
+			else if (arr[row][column] == 0)
+			{
+				cleanBox(column, row);
+			}
+		}
+	}
+}
+
+function CheckOthers(arr, arr2, arr3)
+{	 
+	arr3 = arr2;
+	for (y = 1; y + 1 < arr.length; y++)
+	{	
+		for (x = 1; x + 1 < arr[y].length; x++)
+		{
+			var Sum_of_Neighbours = arr[y + 1][x - 1] + arr[y + 1][x] + arr[y + 1][x + 1] + arr[y][x - 1] + arr[y][x + 1] + arr[y - 1][x - 1] + arr[y - 1][x] + arr[y - 1][x + 1]
+			arr2[y][x] = Sum_of_Neighbours;
+		}	
+	}
+}
+
+function Update(arr, arr2, arr3)
+{ 
+	for (y = 1; y + 1 < arr.length; y++)
+	{	
+		for (x = 1; x + 1 < arr[y].length; x++)
+		{
+//			var Old_SumOf_Neighbours = arr3[y][x];
+			var New_SumOf_Neighbours = arr2[y][x];
+			
+			if (New_SumOf_Neighbours == 3)
+			{
+				arr[y][x] = 1;
+			}
+			
+			else if (New_SumOf_Neighbours == 2)
+			{
+				if (arr[y][x] == 1)
+				{
+					arr[y][x] = 1;
+				}
+				else if (arr[y][x] == 0)
+				{
+					arr[y][x] = 0;
+				}
+			}
+			
+		
+			else if (New_SumOf_Neighbours < 2)
+			{	
+				arr[y][x] = 0;
+			}
+			
+			else if (New_SumOf_Neighbours > 3)
+			{
+				arr[y][x] = 0;
+			}
+		}
+	}
+//	arr3 = arr2;
+}
+
+</script>
+
+</head>
+
+<body>
+	<canvas width="900px" height="900px" id="Border"></canvas>
+	<button onClick="startGame();"> start game </button>
+	
+	<p> step number </p>
+	<p id = "p6"> </p>	
+	
+	<p> Matrix height </p>
+	<p id = "p2"></p>
+	
+	<p> Matrix width </p>
+	<p id = "p4"></p>	
+	
+	<form action="/action_page.php">
+	First name: <input type="text" name="FirstName" value="Mickey"><br>
+	Last name: <input type="text" name="LastName" value="Mouse"><br>
+	</form>
+	
+</body>
+
+</html>
